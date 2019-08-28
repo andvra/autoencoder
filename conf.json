@@ -1,0 +1,6 @@
+{
+	"code_size": 80,
+	"epochs": 100,
+	"dataset": "cifar10",
+	"batch_size": 1024
+}

@@ -1,0 +1,73 @@
+<html>
+  <head>
+    <style>
+      .both {width:100%}
+      .left {float:left}
+      .right{position:fixed; top:20px; right: 20px;}
+    </style>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script>
+      window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')
+    </script>
+    <script type=text/javascript>
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+      </script>
+  </head>
+  <body>
+    <div class="both">
+      {% set ns = namespace(cnt=0) %}
+      {% for col in range(num_cols) %}
+        <div class="left">
+        {% for row in range(num_rows[col]) %}
+          {% set slider_start = slider_initial[ns.cnt] %}
+          <input id="output{{ns.cnt}}" value="{{slider_start}}">
+          <input  type="range"
+                  id="range{{ns.cnt}}"
+                  min="{{slider_range_min}}"
+                  max="{{slider_range_max}}"
+                  value="{{slider_start}}"
+          >
+          <br/>
+          {% set ns.cnt=ns.cnt+1 %}
+        {% endfor %}
+        </div>
+      {% endfor %}
+      <div class="right">
+        <img id="image" width="200px">
+      </div>
+    </div>
+    <script>
+        let slider_vals = []
+        let slider_initial = {{slider_initial}}
+        for(let idx=0;idx<{{code_size}};idx++){
+          slider_start = slider_initial[idx];
+          slider_vals.push(slider_start);
+        }
+      for(let idx=0;idx<{{code_size}};idx++){
+        var slider = document.getElementById('range'+idx);
+        var output = document.getElementById('output'+idx);
+        output.innerHTML = slider.value; // Display the default slider value
+        // Update the current slider value (each time you drag the slider handle)
+        slider.onmouseup = function() {
+          let idx = this.id.substring(5);
+          slider = document.getElementById('range'+idx);
+          output = document.getElementById('output'+idx);
+          output.value = this.value;
+          let s = 'input[id="range'+idx+'"]';
+          slider_vals[idx] = parseInt($(s).val());
+          $.getJSON($SCRIPT_ROOT + '/get_image_path', {
+            slider_vals: slider_vals,
+            }, function(data) {
+              $("#result").text(data.result);
+              // Adding the current time as a query param to the image URL is
+              //  forces the browser to reload the image. It won't reload if the
+              //  name hasn't changed.
+              $("#image").attr('src', '/static/'+data.result + "?"+new Date().getTime());
+            });
+        };
+      }
+    </script>
+  
+
+  </body>
+</html>
