@@ -101,10 +101,10 @@ if __name__=="__main__":
         print(f'{time.time()-t_start:.1f}s\t{time.time()-t_last:.1f}s\tDone running epoch {epoch+1}')
         t_last = time.time()
     # Save the learned weights for later use
-    torch.save(net, 'static/state.pth')
+    torch.save(net, f'static/{dataset_name}_state.pth')
     # We want to sample some values sent to the decoder. The reason is that
     #   we want to use this to define a range for each of the n nodes in the
     #   code that we can use in the front end. We do this by sending a batch
     #   through the encoder.
     code_input = net.encoder(first_batch).detach().numpy()
-    np.save('static/code_input', code_input)
+    np.save(f'static/{dataset_name}_code', code_input)

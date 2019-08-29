@@ -1,6 +1,6 @@
 {
-	"code_size": 80,
-	"epochs": 100,
-	"dataset": "cifar10",
+	"code_size": 15,
+	"epochs": 5,
+	"dataset": "mnist",
 	"batch_size": 1024
 }

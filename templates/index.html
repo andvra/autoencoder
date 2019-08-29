@@ -39,33 +39,34 @@
     <script>
         let slider_vals = []
         let slider_initial = {{slider_initial}}
+        $("#image").attr('src', '/static/img.png' + "?"+new Date().getTime());
         for(let idx=0;idx<{{code_size}};idx++){
           slider_start = slider_initial[idx];
           slider_vals.push(slider_start);
         }
-      for(let idx=0;idx<{{code_size}};idx++){
-        var slider = document.getElementById('range'+idx);
-        var output = document.getElementById('output'+idx);
-        output.innerHTML = slider.value; // Display the default slider value
-        // Update the current slider value (each time you drag the slider handle)
-        slider.onmouseup = function() {
-          let idx = this.id.substring(5);
-          slider = document.getElementById('range'+idx);
-          output = document.getElementById('output'+idx);
-          output.value = this.value;
-          let s = 'input[id="range'+idx+'"]';
-          slider_vals[idx] = parseInt($(s).val());
-          $.getJSON($SCRIPT_ROOT + '/get_image_path', {
-            slider_vals: slider_vals,
-            }, function(data) {
-              $("#result").text(data.result);
-              // Adding the current time as a query param to the image URL is
-              //  forces the browser to reload the image. It won't reload if the
-              //  name hasn't changed.
-              $("#image").attr('src', '/static/'+data.result + "?"+new Date().getTime());
-            });
-        };
-      }
+        for(let idx=0;idx<{{code_size}};idx++){
+          var slider = document.getElementById('range'+idx);
+          var output = document.getElementById('output'+idx);
+          output.innerHTML = slider.value; // Display the default slider value
+          // Update the current slider value (each time you drag the slider handle)
+          slider.onmouseup = function() {
+            let idx = this.id.substring(5);
+            slider = document.getElementById('range'+idx);
+            output = document.getElementById('output'+idx);
+            output.value = this.value;
+            let s = 'input[id="range'+idx+'"]';
+            slider_vals[idx] = parseInt($(s).val());
+            $.getJSON($SCRIPT_ROOT + '/get_image_path', {
+              slider_vals: slider_vals,
+              }, function(data) {
+                $("#result").text(data.result);
+                // Adding the current time as a query param to the image URL is
+                //  forces the browser to reload the image. It won't reload if the
+                //  name hasn't changed.
+                $("#image").attr('src', '/static/'+data.result + "?"+new Date().getTime());
+              });
+          };
+        }
     </script>
   
 
