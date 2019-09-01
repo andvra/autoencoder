@@ -111,4 +111,5 @@ if __name__=="__main__":
     all_range = all_max - all_min
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     net = torch.load(fstate, map_location=torch.device(device))
-    app.run()
+    # Make Flask server reachable from local network
+    app.run(host='0.0.0.0')
