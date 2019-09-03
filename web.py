@@ -14,7 +14,7 @@ all_range = []
 initial = []
 slider_range_min = 1
 slider_range_max = 20
-
+bin_size = []
 app = flask.Flask(__name__)
 
 def to_img(x, channels, n):
@@ -26,12 +26,11 @@ def to_img(x, channels, n):
 def sliders_to_vals(slider_vals):
   vals = np.array(slider_vals, dtype=float)
   vals = vals - slider_range_min
-  vals = all_min + np.multiply(all_range, vals)/(slider_range_max-slider_range_min+1)
+  vals = all_min + vals*bin_size
   return vals
 
 def vals_to_sliders(vals):
-  block_size = all_range / (slider_range_max-slider_range_min+1)
-  return ((vals-all_min) // block_size)[0].astype(int).tolist()
+  return (np.rint((vals-all_min) / bin_size)+slider_range_min)[0].astype(int).tolist()
 
 def img_from_vals(vals):
   r = np.array(vals, dtype=float)
@@ -40,6 +39,7 @@ def img_from_vals(vals):
   img = net.decoder(r)
   img = to_img(img.data, net.num_channels, net.img_size)
   return img
+
 @app.route('/')
 def index():
     # The client will be connected as soon as we return this page
@@ -97,6 +97,29 @@ def pick_state():
       elif selected>=1 and selected<=len(states):
         return states[selected-1]
   
+def set_vals_range(code_input):
+  """ Our sliders have a discrete number of possible values. There's a mapping
+  between slider values and actual values used as input fir the latent space.
+  This could be done by mapping the values to slider values so that the min/max
+  slider value correspond to min/max input values. The issue with this, given we
+  use a linear scaling on the sliders, is that the initial input values is 
+  unlikely to be achive with the sliders. The solution is to modify min/max values
+  so that the initial value is on the sliders. Steps are:
+  1. bin_size = (max-min)/num_bins
+  2. n = index of the bin that contains our initial value
+  3.  min = initial - n*bin_size
+      max = initial + (num_bins-n)*bin_size
+  """
+  global initial, all_min, all_max, all_range, bin_size
+  initial = code_input[np.random.randint(0, code_input.shape[0])][0]
+  all_min = np.min(code_input, axis=0)
+  all_max = np.max(code_input, axis=0)
+  all_range = all_max - all_min
+  num_bins = slider_range_max-slider_range_min+1
+  bin_size = all_range / num_bins
+  n = np.rint((initial-all_min) / bin_size)
+  all_min = initial - n*bin_size
+  all_max = initial + (num_bins-n)*bin_size
 
 if __name__=="__main__":
   state = pick_state()
@@ -105,10 +128,7 @@ if __name__=="__main__":
     with open('conf.json') as json_file:
       conf = json.load(json_file)
     code_input = np.load(fcode)
-    initial = code_input[np.random.randint(0, code_input.shape[0])][0]
-    all_min = np.min(code_input, axis=0)
-    all_max = np.max(code_input, axis=0)
-    all_range = all_max - all_min
+    set_vals_range(code_input)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     net = torch.load(fstate, map_location=torch.device(device))
     # Make Flask server reachable from local network
